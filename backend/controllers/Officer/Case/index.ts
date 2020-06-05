@@ -30,9 +30,9 @@ handlers.mark = async (
       }
 
       // Fetch the officer's case from the database
-      const officerCase = await new request.server.plugins.database.Case()
+      let officerCase = await new request.server.plugins.database.Case()
         .where({ officer_id: officer.get("id"), state: "PROCESSING" })
-        .fetch();
+        .fetch({ withRelated: ["bike", "officer"] });
 
       if (!officerCase) {
         throw new Error("CASE_NOT_FOUND");
@@ -60,7 +60,37 @@ handlers.mark = async (
         }
       );
 
-      return officerCase;
+      // Check if there are cases unassigned
+      let newOfficerCase = await new request.server.plugins.database.Case()
+        .where({ officer_id: null, state: "PROCESSING" })
+        .fetch({ withRelated: ["bike", "officer"] }, { transacting: trx });
+
+      if (newOfficerCase) {
+        // Update the case by assigning the case to the officer
+        await newOfficerCase.save(
+          {
+            state: "PROCESSING",
+            officer_id: officer.get("id"),
+          },
+          {
+            method: "update",
+            transacting: trx,
+          }
+        );
+
+        // Update the officer state
+        await officer.save(
+          {
+            is_busy: true,
+          },
+          {
+            method: "update",
+            transacting: trx,
+          }
+        );
+      }
+
+      return newOfficerCase ? [officerCase, newOfficerCase] : [officerCase];
     });
 
     return h.response(officerCase);

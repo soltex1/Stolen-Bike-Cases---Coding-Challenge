@@ -23,7 +23,9 @@ handlers.list = async (
 ): Promise<object> => {
   try {
     // Fetch the officers from the database
-    const officers = await new request.server.plugins.database.Officer().fetchAll();
+    const officers = await new request.server.plugins.database.Officer().fetchAll(
+      { withRelated: ["cases"] }
+    );
 
     return h.response(officers);
   } catch (e) {
@@ -32,7 +34,7 @@ handlers.list = async (
   }
 };
 
-// Registers a officer
+// Registers an officer
 handlers.register = async (
   request: Request,
   h: ResponseToolkit
@@ -59,7 +61,7 @@ handlers.register = async (
         { method: "insert", transacting: trx }
       );
 
-      // Check if there is cases unassigned
+      // Check if there are cases unassigned
       const officerCase = await new request.server.plugins.database.Case()
         .where({ officer_id: null })
         .fetch({}, { transacting: trx });
@@ -98,7 +100,7 @@ handlers.register = async (
   }
 };
 
-// Updates a officer
+// Updates an officer
 handlers.update = async (
   request: Request,
   h: ResponseToolkit
@@ -127,7 +129,7 @@ handlers.update = async (
   }
 };
 
-// Deletes a officer
+// Deletes an officer
 handlers.delete = async (
   request: Request,
   h: ResponseToolkit

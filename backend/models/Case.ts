@@ -7,6 +7,12 @@ const Case = (bookshelf: Bookshelf): object =>
     hasTimestamps: true,
     requireFetch: false,
     tableName: "case",
+    bike: function () {
+      return this.hasOne("Bike", "id", "bike_id");
+    },
+    officer: function () {
+      return this.hasOne("Officer", "id", "officer_id");
+    },
   });
 
 module.exports = Case;

@@ -7,6 +7,9 @@ const Officer = (bookshelf: Bookshelf): object =>
     hasTimestamps: true,
     requireFetch: false,
     tableName: "officer",
+    cases: function() {
+      return this.hasMany('Case', 'officer_id', 'id');
+    }
   });
 
 module.exports = Officer;
